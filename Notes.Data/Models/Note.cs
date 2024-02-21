@@ -8,5 +8,8 @@
 
     public int? UserID { get; set; }
     public virtual User User { get; set; } = null!;
+
+    public int? NoteFileID { get; set; }
+    public virtual NoteFile NoteFile { get; set; } = null!;
   }
 }

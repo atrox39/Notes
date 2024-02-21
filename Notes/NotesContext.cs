@@ -10,6 +10,8 @@ namespace Notes
     public DbSet<User> UserModel { get; set; }
     public DbSet<Note> NoteModel { get; set; }
 
+    public DbSet<NoteFile> NoteFileModel { get; set; }
+
     public NotesContext(DbContextOptions<NotesContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,6 +32,11 @@ namespace Notes
       modelBuilder.Entity<Note>().Property(property => property.Title).HasMaxLength(120);
       modelBuilder.Entity<Note>().Property(property => property.Content).HasMaxLength(255);
       modelBuilder.Entity<Note>().ToTable("tb_notes");
+      // Note Files
+      modelBuilder.Entity<NoteFile>(entity => {
+        entity.HasIndex(e => e.PathFile).IsUnique();
+      });
+      modelBuilder.Entity<NoteFile>().ToTable("tb_files");
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
