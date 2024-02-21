@@ -1,0 +1,83 @@
+﻿@page "/notes/{id:int}"
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using Notes.Data.DTOs.Note
+@using Notes.Front.Service
+
+@inject NavigationManager navManager
+@inject INoteService noteService
+
+<AuthorizeView Context="authContext">
+  <Authorized>
+    <div class="container mt-4">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <button type="button" @onclick="Delete" class="btn btn-danger mt-4 mb-4">Delete</button>
+          <EditForm Model=@noteInfo OnValidSubmit="SuccessUpdate">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+              <h5><b>Title:</b>&nbsp;@noteInfo.Title</h5>
+            </div>
+            <div class="form-group">
+              <label for="content" style="font-weight: bold">Content</label>
+              <InputTextArea @bind-Value=noteInfo.Content class="form-control" id="content" />
+              <ValidationMessage For="() => noteInfo.Content" />
+            </div>
+            <div class="form-group mt-2">
+              <input type="submit" value="Save" class="btn btn-primary w-100" />
+            </div>
+          </EditForm>
+        </div>
+      </div>
+    </div>
+  </Authorized>
+  <NotAuthorized>
+    <h3>User not authorized <NavLink href="/">Login</NavLink></h3>
+  </NotAuthorized>
+</AuthorizeView>
+
+@code {
+  [Parameter]
+  public int id { get; set; }
+  private NoteDto noteInfo = new();
+
+  private async Task GetInfo()
+  {
+    var note = await noteService.GetById(id);
+    if (note is not null)
+    {
+      noteInfo = note;
+    }
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await GetInfo();
+  }
+
+  private async Task Delete()
+  {
+    var res = await noteService.Delete(id);
+    if (res)
+    {
+      navManager.NavigateTo("/notes");
+    }
+  }
+
+  private async Task SuccessUpdate()
+  {
+    await Update(new NoteUpdateDto
+    {
+      Content = noteInfo.Content,
+    });
+  }
+
+  private async Task Update(NoteUpdateDto noteUpdateDto)
+  {
+    var res = await noteService.Update(id, noteUpdateDto);
+    if (res)
+    {
+      navManager.NavigateTo("/notes");
+    }
+  }
+}

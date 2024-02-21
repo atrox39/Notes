@@ -1,0 +1,95 @@
+﻿@page "/notes"
+
+@using Notes.Data.DTOs.Note
+@using Notes.Front.Service
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+@inject IAuthService authService
+@inject NavigationManager navManager
+@inject INoteService noteService
+
+<PageTitle>Notes page</PageTitle>
+
+<AuthorizeView Context="authContext">
+  <Authorized>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <button type="button" class="btn btn-danger mb-4 mt-4" @onclick="Logout">Logout</button>
+          <EditForm Model="@noteCreate" OnValidSubmit="Create">
+            <DataAnnotationsValidator />
+            <h4>Create Note</h4>
+            <div class="form-group">
+              <label for="title">Title</label>
+              <InputText @bind-Value=noteCreate.Title id="title" class="form-control" />
+              <ValidationMessage For="() => noteCreate.Title" />
+            </div>
+            <div class="form-group">
+              <label for="content">Content</label>
+              <InputTextArea @bind-Value=noteCreate.Content id="content" class="form-control" />
+              <ValidationMessage For="() => noteCreate.Content" />
+            </div>
+            <div class="form-group">
+              <input type="submit" value="Create" class="btn btn-success w-100 mt-2 mb-4" />
+            </div>
+          </EditForm>
+        </div>
+      </div>
+      <div class="row">
+        @foreach (var note in notes)
+        {
+          <div class="col-md-6 mb-2">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">@note.Title</h5>
+              </div>
+              <p class="card-body">@note.Content</p>
+              <div class="card-footer text-end">
+                <button type="button" class="btn btn-secondary" id="@note.Id" @onclick="() => NoteInfo(note.Id)">Info</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </Authorized>
+  <NotAuthorized>
+    <h3>User not authorized <NavLink href="/">Login</NavLink></h3>
+  </NotAuthorized>
+</AuthorizeView>
+
+@code{
+  private NoteCreateDto noteCreate = new();
+  private List<NoteDto> notes = [];
+
+  private async Task Create()
+  {
+    var res = await noteService.Create(noteCreate);
+    if (res)
+    {
+      await GetAll();
+    }
+  }
+
+  private async Task GetAll()
+  {
+    notes = await noteService.GetAll();
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    await GetAll();
+  }
+
+  private void NoteInfo(int id)
+  {
+    navManager.NavigateTo($"/notes/{id}");
+  }
+
+  private async Task Logout()
+  {
+    await authService.Logout();
+    navManager.NavigateTo("/");
+  }
+}
