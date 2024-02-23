@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using Microsoft.Extensions.Configuration;
 using Notes.Data.DTOs.Note;
 using Notes.Data.Models;
+using Notes.Services;
 using System.ComponentModel;
 using System.IO;
 using static System.Net.WebRequestMethods;
@@ -14,37 +15,34 @@ namespace Notes.Repository
 
     public interface IFileRepository
     {
-        public Task<NoteFile> Create(NoteFile file,IFormFile imageFile);
+        public Task<NoteFile> Create(IFormFile imageFile);
     }
     public class FileRepository(NotesContext db):IFileRepository
     {
-
         //BlobServiceCliente
-        WebApplication builder;
-        IConfiguration config;
-        
-            //.GetSection("AppSettings");
-        private readonly BlobServiceClient blobServiceClient;        
+        IConfiguration config;       
 
-        public async Task<NoteFile> Create (NoteFile file,IFormFile imageFile)
+        //public async Task<BlobDto> 
+        public async Task<NoteFile> Create (IFormFile imageFile)
         {
             try
             {
+                //FileService
+                var azureBlob = new FileService(config);
+                var response = await azureBlob.UploadFile(imageFile);
+                var pathFile = response.Blob.Uri;
                 
-                string azureKey = config.GetValue<string>("blob:connectionString");
-                string account = config.GetValue<string>("blob:StorageAccount");
-                var credential = new StorageSharedKeyCredential(account,azureKey);
-                string blobUri = $"https://{account}.blob.core.windows.net/";
-                var blobServiceClient= new BlobServiceClient(new Uri(blobUri),credential);
-                //Container
-                var containerInstance = blobServiceClient.GetBlobContainerClient("stuff-files");
-                //Upload file
-                var blobInstace = containerInstance.GetBlobClient(imageFile.FileName);
-                await blobInstace.UploadAsync(imageFile.OpenReadStream());
 
+                if(response?.Error ?? false)
+                {
 
-                var result = await db.NoteFileModel.AddAsync(file);
-                return result.Entity;
+                    var result = db.NoteFileModel.AddAsync(new() { Date=new DateTime(),PathFile=response.Blob.Uri});
+                    return result.Entity;
+
+                }
+
+                
+                
             }
             catch
             {
