@@ -20,7 +20,7 @@ namespace Notes.Repository
     public class FileRepository(NotesContext db):IFileRepository
     {
         //BlobServiceCliente
-        IConfiguration config;       
+        private readonly IConfiguration config;       
 
         //public async Task<BlobDto> 
         public async Task<NoteFile> Create (IFormFile imageFile)
@@ -30,19 +30,18 @@ namespace Notes.Repository
                 //FileService
                 var azureBlob = new FileService(config);
                 var response = await azureBlob.UploadFile(imageFile);
-                var pathFile = response.Blob.Uri;
+                string pathFile = response.Blob.Uri??"";
                 
 
                 if(response?.Error ?? false)
                 {
-
-                    var result = db.NoteFileModel.AddAsync(new() { Date=new DateTime(),PathFile=response.Blob.Uri});
+                    var result = await db.NoteFileModel.AddAsync(new () { Date = new DateTime(), PathFile = pathFile});
+                    await db.SaveChangesAsync();
                     return result.Entity;
-
+                    //return null;
                 }
 
-                
-                
+                return null;
             }
             catch
             {

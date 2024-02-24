@@ -13,9 +13,10 @@ namespace Notes.Configurations
         .SetIsOriginAllowed(origin => true)
         .AllowCredentials()
       );
+      
       app.UseWebSockets();
-      app.UseMiddleware<WebSocketController>();
-      return app;
+      app.UseMiddleware<WebSocketController>();      
+            return app;
     }
   }
 }

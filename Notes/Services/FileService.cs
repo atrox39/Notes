@@ -39,11 +39,11 @@ namespace Notes.Services
 
 
             try{
-                await using (Stream? data = imageFile.OpenReadStream())
+                
+                using (Stream? data = imageFile.OpenReadStream())
                 {
                     await client.UploadAsync(data);
                 }
-
 
                 //response.Status = $"FiIe {imageFile.FileName} Uptoaded Successfully";
                 //response.Error = false;
@@ -62,7 +62,7 @@ namespace Notes.Services
                 {
                     Status = $"FiIe {imageFile.FileName} Error {ex.Message}",
                     Error = true,
-                    Blob = new() { Uri = client.Uri.AbsoluteUri, Name = client.Name }
+                    Blob = new() { Uri = client.Uri.AbsoluteUri, Name = null }
                 };
             }
             

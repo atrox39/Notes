@@ -5,7 +5,7 @@ namespace Notes.Repository
 {
   public interface INoteRepository
   {
-    Task<Note> Create(Note noteCreateDto, int userId);
+    Task<Note> Create(Note noteCreateDto, int userId,IFormFile img);
     Task<List<Note>> ListAll(int userId);
     Task<Note?> GetById(int id, int userId);
     Task<bool> UpdateById(int id, int userId, Note noteUpdateDto);
@@ -13,12 +13,23 @@ namespace Notes.Repository
   }
   public class NoteRepository(NotesContext db) : INoteRepository
   {
-    public async Task<Note> Create(Note noteCreateDto, int userId)
+    public async Task<Note> Create(Note noteCreateDto, int userId,IFormFile img)
     {
-      noteCreateDto.UserID = userId;
-      var result = await db.NoteModel.AddAsync(noteCreateDto);
-      await db.SaveChangesAsync();
-      return  result.Entity;
+      var file = new FileRepository(db).Create(img);
+            
+
+
+       if(file!=null) {
+                int fileId = new FileRepository(db).Create(img).Id;
+                noteCreateDto.NoteFileID = file.Id;
+                noteCreateDto.UserID = userId;
+                var result = await db.NoteModel.AddAsync(noteCreateDto);
+                await db.SaveChangesAsync();
+                return result.Entity;
+       }
+
+       return null;
+      
     }
 
     public async Task<List<Note>> ListAll(int userId)

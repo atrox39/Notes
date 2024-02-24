@@ -6,6 +6,8 @@ using Notes.Utils;
 using Microsoft.AspNetCore.OutputCaching;
 using Notes.Data.Models;
 using Notes.Data.DTOs.Note;
+using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Notes.Routes
 {
@@ -21,22 +23,25 @@ namespace Notes.Routes
       return group;
     }
 
-    private static async Task<Results<Created<NoteDto>, BadRequest, ValidationProblem>> Create(
-      NoteCreateDto noteCreateDto,
-      IMapper mapper,
-      INoteRepository noteRepository,
-      IValidator<NoteCreateDto> validator,
-      HttpContext httpContext,
-      IOutputCacheStore cacheStore
-    )
-    {
-      var results = await validator.ValidateAsync(noteCreateDto);
+        private static async Task<Results<Created<NoteDto>, BadRequest, ValidationProblem>> Create(
+          [FromForm] NoteCreateDto formNoteCreate,
+          IMapper mapper,
+          INoteRepository noteRepository,
+          IValidator<NoteCreateDto> validator,
+          HttpContext httpContext,
+          IOutputCacheStore cacheStore,
+          IFormFile file
+        )
+        {
+
+            var results = await validator.ValidateAsync(formNoteCreate);
       if (!results.IsValid)
       {
         return TypedResults.ValidationProblem(results.ToDictionary());
       }
       int userID = Methods.GetUserID(httpContext);
-      var note = await noteRepository.Create(mapper.Map<Note>(noteCreateDto), userID);
+      
+      var note = await noteRepository.Create(mapper.Map<Note>(formNoteCreate), userID,file);
       if (note == null)
       {
         return TypedResults.BadRequest();
