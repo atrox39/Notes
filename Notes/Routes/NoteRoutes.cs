@@ -24,8 +24,8 @@ namespace Notes.Routes
     }
 
         private static async Task<Results<Created<NoteDto>, BadRequest, ValidationProblem>> Create(          
-          [FromForm] NoteCreateDto formNoteCreate,
-          IFormFile file,
+          NoteCreateDto formNoteCreate,
+          //IFormFile file,
           IMapper mapper,
           INoteRepository noteRepository,
           IValidator<NoteCreateDto> validator,
@@ -33,33 +33,39 @@ namespace Notes.Routes
           IOutputCacheStore cacheStore
         )
         {
-            var uNote = new NoteCreateDto
-            {
-                Title = formNoteCreate.Title,
-                Content = formNoteCreate.Content,
-            };
 
             //Agregar Logger / Handle Logs
             try
             {
                 // Logger
-                var logger = LoggerFactory.Create(builder =>
-                builder.AddConsole()).CreateLogger("NoteRoutes");
+                var logger =  LoggerFactory.Create(builder => 
+                    builder.AddConsole()).CreateLogger("NoteRoutes");
                 logger.LogInformation("Entrando al endpoint Create");
-                logger.LogInformation($"Usuario : {uNote.Content}");
 
                 // Aquí iría la lógica del endpoint
+
+
                 return TypedResults.BadRequest();
 
             }
             catch (Exception ex)
             {
                 // Capturar cualquier excepción no controlada
-                var logger = LoggerFactory.Create(builder =>
-                    builder.AddConsole()).CreateLogger("NoteRoutes");
+                var logger = StaticLoggerFactory.CreateLogger();
                 logger.LogError(ex, "Error inesperado en el endpoint");
                 return TypedResults.BadRequest();
-            }                        
+            }
+
+
+            var uNote = new NoteCreateDto
+            {
+                Title = formNoteCreate.Title,
+                Content = formNoteCreate.Content,
+            };
+
+            //Console.WriteLine(uNote.Title);
+            System.Diagnostics.Debug.WriteLine(uNote.Content);
+            return TypedResults.BadRequest();
 
             //var results = await validator.ValidateAsync(formNoteCreate);
             //var results = await validator.ValidateAsync(uNote);
