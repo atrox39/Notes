@@ -30,13 +30,14 @@ namespace Notes.Configurations
       builder.Services.AddOutputCache();
       builder.Services.AddCors();            
       builder.Services.AddEndpointsApiExplorer();      
-      builder.Services.AddAntiforgery(); //Registrar el servicio de antiforjería en el método ConfigureServices():
+      builder.Services.AddAntiforgery(); //Registrar el servicio de antiforjería en el método ConfigureServices():      
       builder.Services.AddSwaggerGen();      
       builder.Services.AddAutoMapper(typeof(Program));
       builder.Services.AddScoped<IAuthRepository, AuthRepository>();
       builder.Services.AddScoped<IJwtRepository, JwtRepository>();
       builder.Services.AddScoped<INoteRepository, NoteRepository>();
-      return builder;
+      builder.Services.AddScoped<IFileRepository,FileRepository>();
+            return builder;
     }
   }
 }

@@ -14,21 +14,18 @@ namespace Notes.Repository
   public class NoteRepository(NotesContext db) : INoteRepository
   {
     public async Task<Note> Create(Note noteCreateDto, int userId,IFormFile img)
-    {
-      var file = new FileRepository(db).Create(img);
-            
+    {            
 
-
-       if(file!=null) {
+       if(img!=null) {
                 int fileId = new FileRepository(db).Create(img).Id;
-                noteCreateDto.NoteFileID = file.Id;
+                noteCreateDto.NoteFileID = fileId;
                 noteCreateDto.UserID = userId;
                 var result = await db.NoteModel.AddAsync(noteCreateDto);
                 await db.SaveChangesAsync();
                 return result.Entity;
        }
 
-       return null;
+            return null;
       
     }
 

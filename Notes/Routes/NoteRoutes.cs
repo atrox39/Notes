@@ -39,7 +39,8 @@ namespace Notes.Routes
                 Content = formNoteCreate.Content,
             };
 
-            Console.WriteLine(uNote.Title);
+            //Console.WriteLine(uNote.Title);
+            System.Diagnostics.Debug.WriteLine(uNote.Content);
 
             //var results = await validator.ValidateAsync(formNoteCreate);
             var results = await validator.ValidateAsync(uNote);
