@@ -1,9 +1,13 @@
 using System.Text;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Win32;
 using Notes.Repository;
 using Notes.Validations;
+
+
+
 
 namespace Notes.Configurations
 {
@@ -28,8 +32,17 @@ namespace Notes.Configurations
         };
       });
       builder.Services.AddOutputCache();
-      builder.Services.AddCors();            
-      builder.Services.AddEndpointsApiExplorer();      
+      builder.Services.AddCors();
+      builder.Services.Configure<FormOptions>(options =>
+      {
+         options.MultipartBodyLengthLimit = 104857600;
+      });
+      //builder.Services.AddControllers(options =>
+      //{
+      //    options.ModelBinderProviders.Insert(0, new FormDataModelBinderProvider());
+      //});
+
+            builder.Services.AddEndpointsApiExplorer();      
       builder.Services.AddAntiforgery(); //Registrar el servicio de antiforjería en el método ConfigureServices():      
       builder.Services.AddSwaggerGen();      
       builder.Services.AddAutoMapper(typeof(Program));

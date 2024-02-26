@@ -13,7 +13,7 @@ namespace Notes.Routes
 {
   public static class NoteRoutes
   {
-    public static RouteGroupBuilder MapNotes(this RouteGroupBuilder group)
+        public static RouteGroupBuilder MapNotes(this RouteGroupBuilder group)
     {
       group.MapPost("/", Create);
       group.MapGet("/", ListAll).CacheOutput(x => x.Expire(TimeSpan.FromMinutes(30)).Tag("Note-All"));
@@ -23,14 +23,14 @@ namespace Notes.Routes
       return group;
     }
 
-        private static async Task<Results<Created<NoteDto>, BadRequest, ValidationProblem>> Create(
+        private static async Task<Results<Created<NoteDto>, BadRequest, ValidationProblem>> Create(          
           [FromForm] NoteCreateDto formNoteCreate,
+          IFormFile file,
           IMapper mapper,
           INoteRepository noteRepository,
           IValidator<NoteCreateDto> validator,
           HttpContext httpContext,
-          IOutputCacheStore cacheStore,
-          IFormFile file
+          IOutputCacheStore cacheStore
         )
         {
             var uNote = new NoteCreateDto
@@ -39,24 +39,43 @@ namespace Notes.Routes
                 Content = formNoteCreate.Content,
             };
 
-            //Console.WriteLine(uNote.Title);
-            System.Diagnostics.Debug.WriteLine(uNote.Content);
+            //Agregar Logger / Handle Logs
+            try
+            {
+                // Logger
+                var logger = LoggerFactory.Create(builder =>
+                builder.AddConsole()).CreateLogger("NoteRoutes");
+                logger.LogInformation("Entrando al endpoint Create");
+                logger.LogInformation($"Usuario : {uNote.Content}");
+
+                // Aquí iría la lógica del endpoint
+                return TypedResults.BadRequest();
+
+            }
+            catch (Exception ex)
+            {
+                // Capturar cualquier excepción no controlada
+                var logger = LoggerFactory.Create(builder =>
+                    builder.AddConsole()).CreateLogger("NoteRoutes");
+                logger.LogError(ex, "Error inesperado en el endpoint");
+                return TypedResults.BadRequest();
+            }                        
 
             //var results = await validator.ValidateAsync(formNoteCreate);
-            var results = await validator.ValidateAsync(uNote);
-            if (!results.IsValid)
-              {
-                return TypedResults.ValidationProblem(results.ToDictionary());
-              }
-              int userID = Methods.GetUserID(httpContext);
+            //var results = await validator.ValidateAsync(uNote);
+            //if (!results.IsValid)
+            //  {
+            //    return TypedResults.ValidationProblem(results.ToDictionary());
+            //  }
+            //  int userID = Methods.GetUserID(httpContext);
       
-            var note = await noteRepository.Create(mapper.Map<Note>(formNoteCreate), userID,file);
-              if (note == null)
-              {
-                return TypedResults.BadRequest();
-              }
-            await cacheStore.EvictByTagAsync("Note-All", default);
-            return TypedResults.Created($"/notes/{note.Id}", mapper.Map<NoteDto>(note));
+            //var note = await noteRepository.Create(mapper.Map<Note>(formNoteCreate), userID,file);
+            //  if (note == null)
+            //  {
+            //    return TypedResults.BadRequest();
+            //  }
+            //await cacheStore.EvictByTagAsync("Note-All", default);
+            //return TypedResults.Created($"/notes/{note.Id}", mapper.Map<NoteDto>(note));
         }
 
     private static async Task<Ok<List<NoteDto>>> ListAll(
