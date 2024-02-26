@@ -33,22 +33,30 @@ namespace Notes.Routes
           IFormFile file
         )
         {
+            var uNote = new NoteCreateDto
+            {
+                Title = formNoteCreate.Title,
+                Content = formNoteCreate.Content,
+            };
 
-            var results = await validator.ValidateAsync(formNoteCreate);
-      if (!results.IsValid)
-      {
-        return TypedResults.ValidationProblem(results.ToDictionary());
-      }
-      int userID = Methods.GetUserID(httpContext);
+            Console.WriteLine(uNote.Title);
+
+            //var results = await validator.ValidateAsync(formNoteCreate);
+            var results = await validator.ValidateAsync(uNote);
+            if (!results.IsValid)
+              {
+                return TypedResults.ValidationProblem(results.ToDictionary());
+              }
+              int userID = Methods.GetUserID(httpContext);
       
-      var note = await noteRepository.Create(mapper.Map<Note>(formNoteCreate), userID,file);
-      if (note == null)
-      {
-        return TypedResults.BadRequest();
-      }
-      await cacheStore.EvictByTagAsync("Note-All", default);
-      return TypedResults.Created($"/notes/{note.Id}", mapper.Map<NoteDto>(note));
-    }
+            var note = await noteRepository.Create(mapper.Map<Note>(formNoteCreate), userID,file);
+              if (note == null)
+              {
+                return TypedResults.BadRequest();
+              }
+            await cacheStore.EvictByTagAsync("Note-All", default);
+            return TypedResults.Created($"/notes/{note.Id}", mapper.Map<NoteDto>(note));
+        }
 
     private static async Task<Ok<List<NoteDto>>> ListAll(
       INoteRepository noteRepository,
